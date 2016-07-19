@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.LinkedHashMap;
@@ -47,6 +48,8 @@ public class MyFirstVerticle extends AbstractVerticle {
             .end(Json.encodePrettily(whiskies.values()));
     }
 
+
+
     private Router initRouter(Vertx vertx) {
         Router router = Router.router(vertx);
 
@@ -68,7 +71,52 @@ public class MyFirstVerticle extends AbstractVerticle {
             .get("/api/whiskies")
             .handler(this::getAll);
 
+        // enable reading of request body for all routes under /api/whiskies
+        router
+            .route("/api/whiskies*")
+            .handler(BodyHandler.create());
+
+        router
+            .post("/api/whiskies")
+            .handler(this::add);
+
+        router
+            .delete("/api/whiskies/:id")
+            .handler(this::delete);
+
         return router;
+    }
+
+    private void delete(RoutingContext routingContext) {
+        String id = routingContext.request().getParam("id");
+        if (id == null) {
+            routingContext
+                .response()
+                .setStatusCode(400)
+                .end();
+        } else {
+            Integer idAsInteger = Integer.valueOf(id);
+            whiskies.remove(idAsInteger);
+        }
+        routingContext
+            .response()
+            .setStatusCode(204) // no content
+            .end();
+    }
+
+    private void add(RoutingContext routingContext) {
+        final Whisky whisky = Json.decodeValue(
+            routingContext.getBodyAsString(),
+            Whisky.class
+        );
+        whiskies.put(whisky.getId(), whisky);
+
+        // status 201 created
+        // and return new entity in body
+        routingContext.response()
+            .setStatusCode(201)
+            .putHeader("content-type", "application/json; charset=utf-8")
+            .end(Json.encodePrettily(whisky));
     }
 
     private Map<Integer, Whisky> initWhiskies() {

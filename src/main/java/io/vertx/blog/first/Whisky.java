@@ -16,9 +16,14 @@ public class Whisky {
     private String origin;
 
     public Whisky(String name, String origin) {
-        this.id = COUNTER.getAndIncrement();
+        this();
         this.name = name;
         this.origin = origin;
+    }
+
+    // required for deserialization
+    public Whisky() {
+        this.id = COUNTER.getAndIncrement();
     }
 
     public String getName() {
