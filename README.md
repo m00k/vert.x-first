@@ -3,7 +3,7 @@ From the [My first Vert.x 3 Application](http://vertx.io/blog/my-first-vert-x-3-
 
 ## build and run
 - ```mvn clean package```
-- ```jar -jar target/my-first-app-1.0-SNAPSHOT-fat.jar```
+- ```jar -jar target/vert.x-first-1.0-SNAPSHOT-fat.jar```
 - browse `localhost:8080`
 
 ## test
