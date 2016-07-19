@@ -5,6 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -67,14 +68,14 @@ public class MyFirstVerticle extends AbstractVerticle {
             .route("/assets/*")
             .handler(StaticHandler.create("assets"));
 
-        router
-            .get("/api/whiskies")
-            .handler(this::getAll);
-
         // enable reading of request body for all routes under /api/whiskies
         router
             .route("/api/whiskies*")
             .handler(BodyHandler.create());
+
+        router
+            .get("/api/whiskies")
+            .handler(this::getAll);
 
         router
             .post("/api/whiskies")
@@ -84,7 +85,53 @@ public class MyFirstVerticle extends AbstractVerticle {
             .delete("/api/whiskies/:id")
             .handler(this::delete);
 
+        router
+            .get("/api/whiskies/:id")
+            .handler(this::get);
+
+        router
+            .put("/api/whiskies/:id")
+            .handler(this::update);
+
         return router;
+    }
+
+    private void update(RoutingContext routingContext) {
+        final String id = routingContext.request().getParam("id");
+        JsonObject json = routingContext.getBodyAsJson();
+        if (id == null) {
+            routingContext.response().setStatusCode(400).end();
+        } else {
+            final Integer idAsInteger = Integer.valueOf(id);
+            Whisky whisky = whiskies.get(idAsInteger);
+            if (whisky == null) {
+                routingContext.response().setStatusCode(404).end();
+            } else {
+                // meh
+                whisky.setName(json.getString("name"));
+                whisky.setOrigin(json.getString("origin"));
+                routingContext.response()
+                    .putHeader("content-type", "application/json; charset=utf-8")
+                    .end(Json.encodePrettily(whisky));
+            }
+        }
+    }
+
+    private void get(RoutingContext routingContext) {
+        final String id = routingContext.request().getParam("id");
+        if (id == null) {
+            routingContext.response().setStatusCode(400).end();
+        } else {
+            final Integer idAsInteger = Integer.valueOf(id);
+            Whisky whisky = whiskies.get(idAsInteger);
+            if (whisky == null) {
+                routingContext.response().setStatusCode(404).end();
+            } else {
+                routingContext.response()
+                    .putHeader("content-type", "application/json; charset=utf-8")
+                    .end(Json.encodePrettily(whisky));
+            }
+        }
     }
 
     private void delete(RoutingContext routingContext) {
