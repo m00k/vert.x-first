@@ -10,17 +10,21 @@ public class MyFirstVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> fut) throws Exception {
+        int port = config().getInteger("http.port", 8080);
         vertx
-                .createHttpServer()
-                .requestHandler(r ->
-                        r.response().end("<h1>vert.x first</h1>")
-                )
-                .listen(8080, result -> {
-                    if (result.succeeded()){
+            .createHttpServer()
+            .requestHandler(r ->
+                r.response().end("<h1>vert.x first</h1>")
+            )
+            .listen(
+                port,
+                result -> {
+                    if (result.succeeded()) {
                         fut.complete();
                     } else {
                         fut.fail(result.cause());
                     }
-                });
+                }
+            );
     }
 }
